@@ -1,5 +1,6 @@
 import os
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from fastapi.responses import StreamingResponse
 import google.generativeai as genai
@@ -12,6 +13,13 @@ model = genai.GenerativeModel('gemini-2.5-flash')
 
 app = FastAPI()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # En un hackatón usamos "*" para que no se bloquee con nada. En la vida real, aquí va la URL de tu frontend.
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 # 2. Modelos de datos de Vercel
 class ClientMessage(BaseModel):
     role: str
