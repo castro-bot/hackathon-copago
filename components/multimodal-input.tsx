@@ -1,71 +1,52 @@
 "use client";
 
-import type { CreateUIMessage, UIMessage, UseChatHelpers, UseChatOptions } from "@ai-sdk/react";
-
-type ChatRequestOptions = {
-  headers?: Record<string, string> | Headers;
-  body?: object;
-  data?: any;
-};
+import type { UIMessage, UseChatHelpers } from "@ai-sdk/react";
 import { motion } from "framer-motion";
-import type React from "react";
 import {
+  useState,
   useRef,
   useEffect,
   useCallback,
   type Dispatch,
   type SetStateAction,
 } from "react";
-import { toast } from "sonner";
-import { useLocalStorage, useWindowSize } from "usehooks-ts";
+import { useWindowSize } from "usehooks-ts";
 
-import { cn, sanitizeUIMessages } from "@/lib/utils";
-
+import { sanitizeUIMessages } from "@/lib/utils";
 import { ArrowUpIcon, StopIcon } from "./icons";
 import { Button } from "./ui/button";
-import { Textarea } from "./ui/textarea";
 
 const suggestedActions = [
   {
-    title: "What is the weather",
-    label: "in San Francisco?",
-    action: "What is the weather in San Francisco?",
+    title: "¿Cuál es mi cobertura?",
+    label: "para consultas médicas",
+    action: "¿Cuál es mi cobertura para consultas médicas?",
   },
   {
-    title: "How is python useful",
-    label: "for AI engineers?",
-    action: "How is python useful for AI engineers?",
+    title: "¿Cómo solicito",
+    label: "una autorización?",
+    action: "¿Cómo solicito una autorización médica?",
   },
 ];
 
 export function MultimodalInput({
   chatId,
-  input,
-  setInput,
   isLoading,
   stop,
   messages,
   setMessages,
   sendMessage,
-  handleSubmit,
   className,
 }: {
   chatId: string;
-  input: string;
-  setInput: (value: string) => void;
   isLoading: boolean;
   stop: () => void;
   messages: Array<UIMessage>;
   setMessages: Dispatch<SetStateAction<Array<UIMessage>>>;
-  sendMessage: UseChatHelpers<UIMessage>['sendMessage']
-  handleSubmit: (
-    event?: {
-      preventDefault?: () => void;
-    },
-    chatRequestOptions?: ChatRequestOptions
-  ) => void;
+  sendMessage: UseChatHelpers<UIMessage>["sendMessage"];
   className?: string;
 }) {
+  const [input, setInput] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { width } = useWindowSize();
 
@@ -78,32 +59,9 @@ export function MultimodalInput({
   const adjustHeight = () => {
     if (textareaRef.current) {
       textareaRef.current.style.height = "auto";
-      textareaRef.current.style.height = `${
-        textareaRef.current.scrollHeight + 2
-      }px`;
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight + 2}px`;
     }
   };
-
-  const [localStorageInput, setLocalStorageInput] = useLocalStorage(
-    "input",
-    ""
-  );
-
-  useEffect(() => {
-    if (textareaRef.current) {
-      const domValue = textareaRef.current.value;
-      // Prefer DOM value over localStorage to handle hydration
-      const finalValue = domValue || localStorageInput || "";
-      setInput(finalValue);
-      adjustHeight();
-    }
-    // Only run once after hydration
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    setLocalStorageInput(input);
-  }, [input, setLocalStorageInput]);
 
   const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
     setInput(event.target.value);
@@ -111,13 +69,19 @@ export function MultimodalInput({
   };
 
   const submitForm = useCallback(() => {
-    handleSubmit(undefined, {});
-    setLocalStorageInput("");
+    if (!input.trim()) return;
+
+    sendMessage({
+      role: "user",
+      parts: [{ type: "text", text: input.trim() }],
+    } as any);
+
+    setInput("");
 
     if (width && width > 768) {
       textareaRef.current?.focus();
     }
-  }, [handleSubmit, setLocalStorageInput, width]);
+  }, [input, sendMessage, width]);
 
   return (
     <div className="relative w-full flex flex-col gap-4">
@@ -134,16 +98,11 @@ export function MultimodalInput({
             >
               <Button
                 variant="ghost"
-                onClick={async () => {
+                onClick={() => {
                   sendMessage({
                     role: "user",
-                    parts: [
-                      {
-                        type: "text",
-                        text: suggestedAction.action,
-                      },
-                    ],
-                  });
+                    parts: [{ type: "text", text: suggestedAction.action }],
+                  } as any);
                 }}
                 className="text-left border rounded-xl px-4 py-3.5 text-sm flex-1 gap-1 sm:flex-col w-full h-auto justify-start items-start"
               >
@@ -157,26 +116,17 @@ export function MultimodalInput({
         </div>
       )}
 
-      <Textarea
+      <textarea
         ref={textareaRef}
-        placeholder="Send a message..."
-        value={input || ""}
+        placeholder="Escribe tu mensaje..."
+        value={input}
         onChange={handleInput}
-        className={cn(
-          "min-h-[24px] max-h-[calc(75dvh)] overflow-hidden resize-none rounded-xl !text-base bg-muted",
-          className
-        )}
-        rows={3}
+        className="min-h-[60px] w-full resize-none bg-transparent px-4 py-[1.3rem] focus-within:outline-none sm:text-sm"
         autoFocus
-        onKeyDown={(event) => {
-          if (event.key === "Enter" && !event.shiftKey) {
-            event.preventDefault();
-
-            if (isLoading) {
-              toast.error("Please wait for the model to finish its response!");
-            } else {
-              submitForm();
-            }
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            submitForm();
           }
         }}
       />

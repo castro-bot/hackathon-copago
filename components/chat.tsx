@@ -4,38 +4,25 @@ import { PreviewMessage, ThinkingMessage } from "@/components/message";
 import { MultimodalInput } from "@/components/multimodal-input";
 import { Overview } from "@/components/overview";
 import { useScrollToBottom } from "@/hooks/use-scroll-to-bottom";
-import { useChat, type CreateUIMessage, type UIMessage } from "@ai-sdk/react";
+import { useChat, type UIMessage } from "@ai-sdk/react";
 import { toast } from "sonner";
-import React from "react";
 
 export function Chat() {
   const chatId = "001";
 
+  // AI SDK v5: useChat ya no expone input/setInput/handleSubmit/append
+  // Solo expone: messages, setMessages, sendMessage, stop, status, error
   const { messages, setMessages, sendMessage, status, stop } = useChat({
+    api: "http://localhost:8000/api/chat",
     id: chatId,
     onError: (error: Error) => {
-      if (error.message.includes("Too many requests")) {
-        toast.error(
-          "You are sending too many messages. Please try again later."
-        );
-      }
+      toast.error("Error al conectar con el asistente médico.");
+      console.error(error);
     },
-  });
+  } as any);
 
-  const [messagesContainerRef, messagesEndRef] =
-    useScrollToBottom<HTMLDivElement>();
-
-  const [input, setInput] = React.useState("");
-
+  const [messagesContainerRef, messagesEndRef] = useScrollToBottom<HTMLDivElement>();
   const isLoading = status === "submitted" || status === "streaming";
-
-  const handleSubmit = (event?: { preventDefault?: () => void }) => {
-    event?.preventDefault?.();
-    if (input.trim()) {
-      sendMessage({ text: input });
-      setInput("");
-    }
-  };
 
   return (
     <div className="flex flex-col min-w-0 h-[calc(100dvh-52px)] bg-background">
@@ -58,25 +45,19 @@ export function Chat() {
           messages.length > 0 &&
           messages[messages.length - 1].role === "user" && <ThinkingMessage />}
 
-        <div
-          ref={messagesEndRef}
-          className="shrink-0 min-w-[24px] min-h-[24px]"
-        />
+        <div ref={messagesEndRef} className="shrink-0 min-w-[24px] min-h-[24px]" />
       </div>
 
-      <form className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
+      <div className="flex mx-auto px-4 bg-background pb-4 md:pb-6 gap-2 w-full md:max-w-3xl">
         <MultimodalInput
           chatId={chatId}
-          input={input}
-          setInput={setInput}
-          handleSubmit={handleSubmit}
           isLoading={isLoading}
           stop={stop}
           messages={messages}
           setMessages={setMessages}
           sendMessage={sendMessage}
         />
-      </form>
+      </div>
     </div>
   );
 }
