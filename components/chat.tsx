@@ -15,7 +15,7 @@ export function Chat() {
   const chatId = "001";
   const [selectedPolicy, setSelectedPolicy] = useState<string | null>(null);
 
-  const { messages, setMessages, append, sendMessage: sdkSendMessage, status, stop } = useChat({
+  const { messages, setMessages, sendMessage: sdkSendMessage, status, stop } = useChat({
     api: "http://localhost:8000/api/chat",
     id: chatId,
     body: {
@@ -31,12 +31,11 @@ export function Chat() {
 
   const customSendMessage = useCallback(
     (msg: any) => {
-      const sendFn = append || sdkSendMessage;
-      if (typeof sendFn === "function") {
-        sendFn(msg, { data: { selectedPolicy }, body: { selectedPolicy } });
+      if (typeof sdkSendMessage === "function") {
+        sdkSendMessage(msg, { data: { selectedPolicy }, body: { selectedPolicy } });
       }
     },
-    [append, sdkSendMessage, selectedPolicy]
+    [sdkSendMessage, selectedPolicy]
   );
 
   const [messagesContainerRef, messagesEndRef] =
