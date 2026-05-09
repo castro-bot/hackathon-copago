@@ -30,9 +30,9 @@ export function Chat() {
   } as any);
 
   const customSendMessage = useCallback(
-    (msg: any) => {
+    async (msg?: any, options?: any) => {
       if (typeof sdkSendMessage === "function") {
-        sdkSendMessage(msg, { body: { selectedPolicy } });
+        return sdkSendMessage(msg, { ...options, body: { ...options?.body, selectedPolicy } });
       }
     },
     [sdkSendMessage, selectedPolicy]
