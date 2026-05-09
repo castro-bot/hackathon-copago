@@ -16,7 +16,7 @@ export function Chat() {
   const [selectedPolicy, setSelectedPolicy] = useState<string | null>(null);
 
   const { messages, setMessages, sendMessage: sdkSendMessage, status, stop } = useChat({
-    api: "http://localhost:8000/api/chat",
+    api: "/api/chat",
     id: chatId,
     body: {
       selectedPolicy: selectedPolicy,
