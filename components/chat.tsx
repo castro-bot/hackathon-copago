@@ -32,7 +32,7 @@ export function Chat() {
   const customSendMessage = useCallback(
     (msg: any) => {
       if (typeof sdkSendMessage === "function") {
-        sdkSendMessage(msg, { data: { selectedPolicy }, body: { selectedPolicy } });
+        sdkSendMessage(msg, { body: { selectedPolicy } });
       }
     },
     [sdkSendMessage, selectedPolicy]
