@@ -1,4 +1,4 @@
-# 🏥 Estimador Agéntico de Copago y Cobertura para el Paciente
+# 🏥 Estimador Agéntico de Copago y Cobertura para Pacientes
 
 ## 🌟 Introducción
 
@@ -66,9 +66,9 @@ El agente no solo realiza cálculos matemáticos sobre pólizas, sino que actúa
 
 La arquitectura sigue un patrón de **Cliente-Servidor con IA Integrada**:
 
-1. **Capa de Presentación (Frontend Next.js)**: Captura la póliza seleccionada y los síntomas del usuario. Inicia una conexión por *Server-Sent Events (SSE)* vía Vercel AI SDK.
-2. **Capa de Lógica (Backend FastAPI)**: Recibe el prompt del paciente y el contexto de la póliza. Construye un *System Prompt* robusto con reglas estrictas (ej. derivar a urgencias a costo cero si hay riesgo vital).
-3. **Capa RAG & LLM (Google Gemini)**:
+1. **Capa de Presentación**: Captura la póliza seleccionada y los síntomas del usuario. Inicia una conexión por *Server-Sent Events (SSE)* vía Vercel AI SDK.
+2. **Capa de Lógica**: Recibe el prompt del paciente y el contexto de la póliza. Construye un *System Prompt* robusto con reglas estrictas (ej. derivar a urgencias a costo cero si hay riesgo vital).
+3. **Capa RAG & LLM**:
     - El backend consulta el *File Search Store* (creado previamente usando `setup_rag.py` a partir del PDF de seguros).
     - Extrae la información semántica exacta y la procesa a través del modelo `gemini-3.1-flash-lite`.
     - Retorna de manera progresiva (*stream*) la respuesta validada.
@@ -135,7 +135,7 @@ La aplicación frontend estará disponible en `http://localhost:3000` y la API e
 
 ---
 
-## ⚙️ Configuración (Configuration)
+## ⚙️ Configuración
 
 Crea un archivo `.env` en la raíz del proyecto basándote en `.env.example`:
 
